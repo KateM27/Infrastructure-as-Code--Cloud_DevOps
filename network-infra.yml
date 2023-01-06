@@ -192,21 +192,27 @@ Resources:
             RouteTableId: !Ref PrivateRouteTable2
             SubnetId: !Ref PrivateSubnet2
 
-    S3ReadOnlyAccessEC2:
+    UdacityS3ReadOnlyEC2:
         Type: AWS::IAM::Role
-        Properties: 
+        Properties:
+            RoleName: !Sub ${EnvironmentName}-Role
             AssumeRolePolicyDocument:
                 Version: '2012-10-17'
                 Statement:
-                  - Effect: Allow
-                    Principal:
-                      Service:
-                        - ec2.amazonaws.com
-                    Action:
-                      - 'sts:AssumeRole'
+                - Effect: Allow
+                  Principal:
+                    Service:
+                    - ec2.amazonaws.com
+                  Action:
+                  - 'sts:AssumeRole'
             Description: This role allows instances to get the application archive from S3
             Path: '/'
-            RoleName: !Sub ${EnvironmentName}-Role
+
+    ProfileWithRolesForOurApp:
+        Type: AWS::IAM::InstanceProfile
+        Properties:
+            Roles:
+            - Ref: UdacityS3ReadOnlyEC2
 
     RolePolicies:
         Type: AWS::IAM::Policy
@@ -221,7 +227,7 @@ Resources:
                   - s3:List*
                   Resource: arn:aws:s3:::udacity-proj-002/*
             Roles:
-            - !Ref S3ReadOnlyAccessEC2
+            - Ref: UdacityS3ReadOnlyEC2
 
     LBSecGroup:
         Type: AWS::EC2::SecurityGroup
@@ -270,7 +276,7 @@ Resources:
               sudo systemctl start apache2.service
               cd /var/www/html
               echo "It works! Udagram Udacity" > index.html
-          ImageId: ami-061dbd1209944525c
+          ImageId: ami-08fdec01f5df9998f
           SecurityGroups:
           - Ref: WebServerSecGroup
           InstanceType: t3.small
@@ -300,8 +306,8 @@ Resources:
           - !Ref PrivateSubnet2
           LaunchConfigurationName:
             Ref: WebAppLaunchConfig
-          MinSize: '3'
-          MaxSize: '5'
+          MinSize: '4'
+          MaxSize: '7'
           TargetGroupARNs:
           - Ref: WebAppTargetGroup
   
@@ -398,3 +404,9 @@ Outputs:
         Value: !Ref PrivateSubnet2
         Export:
           Name: !Sub ${EnvironmentName}-PRI2-SN
+
+    WebAppLB:
+        Description: A reference to the internet-facing ALB
+        Value: !Ref WebAppLB
+        Export:
+          Name: !Sub ${EnvironmentName}-WEB-LB

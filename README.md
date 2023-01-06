@@ -14,4 +14,4 @@ Example:
 ```
 ./create.sh demo-app1 network-infra.yml server-parameters.json
 ```
-(LoadBalancer URL) - [http://demo-webap-13ytvtdlalo2x-1580369252.us-east-1.elb.amazonaws.com/]
+Load Balancer URL - [http://demo-webap-1sms5pxxpulv0-2052519995.us-east-1.elb.amazonaws.com/]
